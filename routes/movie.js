@@ -5,10 +5,6 @@ const Movie = require('../lib/model/movie')
 const chai = require('chai')
 const _ = require('lodash')
 
-
-
-/* GET users listing. */
-
 router.post('/', function(req, res, next) {
   console.log("POST", req.body)
   if(!req.body){
