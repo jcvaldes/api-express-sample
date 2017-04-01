@@ -1,5 +1,6 @@
 var express = require('express');
 var path = require('path');
+var cors = require('cors');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var mongoose = require('mongoose')
@@ -12,7 +13,6 @@ var index = require('./routes/index');
 var movie = require('./routes/movie');
 var user = require('./routes/user');
 var auth = require('./routes/auth');
-//var users = require('./routes/users');
 
 var app = express();
 mongoose.createConnection(config.database)
@@ -26,6 +26,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(cors());
+//app.use(cors({origin: 'http://localhost:8000/'}));
 //Rutas inseguras
 app.use('/', index)
 app.use('/auth', auth)
