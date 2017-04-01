@@ -11,7 +11,7 @@ const chai = require('chai')
 global.AssertionError = chai.AssertionError
 global.expect = chai.expect
 request = request(host)
-describe('La ruta de usuarios', function () {
+describe('La ruta Authentication', function () {
   before(() =>{
     mongoose.connect(config.database)
   })
@@ -20,27 +20,30 @@ describe('La ruta de usuarios', function () {
     mongoose.models = {}
   })
   describe('una peticion POST', function () {
-    it('deberia crear un usuario', function (done) {
+    it('deberia autenticar un usuario', function (done) {
       let user = {
         'username': 'jcvaldes',
         'password': 'secret'
       }
-
       request
         .post('/user')
         .set('Accept', 'application/json')
         .send(user)
         .expect(201)
         .expect('Content-Type', /application\/json/)
-        .end((err, res) => {
-          let body = res.body
-          expect(body).to.have.property('user')
-          let user = body.user
-          expect(user).to.have.property('_id')
-          expect(user).to.have.property('password')
-          expect(user).to.have.property('username', 'jcvaldes')
-          done(err)
-        })
+      .then((res) => {
+        return request
+          .post('/auth')
+          .set('Accept', 'application/json')
+          .send(user)
+          .expect(201)
+          .expect('Content-Type', /application\/json/)
+      })
+      .then((res)=>{
+        let body = res.body
+        expect(body).to.have.property('token')
+        done()
+      }, done)
     })
   })
 })

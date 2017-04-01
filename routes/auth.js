@@ -2,9 +2,11 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../lib/model/user')
+const jwt = require('jsonwebtoken')
+const config = require('../lib/config')
 const crypto = require('crypto'),
-    algorithm = 'aes-256-ctr',
-    password = 'MyHash'
+  algorithm = 'aes-256-ctr',
+  password = 'MyHash'
 
 const chai = require('chai')
 
@@ -16,12 +18,6 @@ function encrypt( text ) {
   return crypted
 }
 
-function decrypt( text ) {
-  let decipher = crypto.createDecipher(algorithm, password)
-  let dec = decipher.update(text, 'hex', 'utf8')
-  dec += decipher.final('utf8')
-  return dec
-}
 router.post('/', function(req, res, next) {
   console.log("POST", req.body)
   if(!req.body){
@@ -39,10 +35,13 @@ router.post('/', function(req, res, next) {
           .json({error:true, message:err})
       }
       else if(user) {
-        if(user.password === encrypt(_user.password)){
+        if(user.password ===  encrypt(_user.password)){
+          let token = jwt.sign(user, config.secret, {
+            expiresIn: '24hr'
+          })
           res
             .status(201)
-            .json({user: {username: user.username, password: user.password, _id: user._id}})
+            .json({token: token})
         }else{
           res
             .status(403)
@@ -50,20 +49,11 @@ router.post('/', function(req, res, next) {
         }
       }
       else {
-        new User({
-          username: _user.username,
-          password: encrypt(_user.password)
-        }).save((err, user) => {
-          if(err){
-            res
-              .status(403)
-              .json({error:true, message: err})
-          }
-
+        if(err){
           res
-            .status(201)
-            .json({user: {username: user.username, _id: user._id}})
-        })
+            .status(403)
+            .json({error:true, message: 'No existe el usuario'})
+        }
       }
     }
   )
